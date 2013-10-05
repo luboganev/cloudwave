@@ -1,0 +1,38 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.luboganev.cloudwave"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+	<uses-sdk
+        android:minSdkVersion="7"
+        android:targetSdkVersion="18" />
+    <uses-feature android:name="android.software.live_wallpaper" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/wallpapers"
+        android:theme="@style/AppTheme" >
+        <service
+            android:name=".CloudWaveWallpaper"
+            android:label="@string/cloudwave"
+            android:permission="android.permission.BIND_WALLPAPER" >
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/cloudwave" />
+        </service>
+
+        <activity
+            android:name=".CloudWaveSettings"
+            android:exported="true"
+            android:label="@string/cloudwave_settings"
+            android:theme="@android:style/Theme.Light.WallpaperSettings" >
+        </activity>
+    </application>
+
+</manifest>
