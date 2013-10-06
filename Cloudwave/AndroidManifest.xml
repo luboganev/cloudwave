@@ -1,13 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.luboganev.cloudwave"
     android:versionCode="1"
     android:versionName="1.0" >
 
-	<uses-sdk
+    <uses-sdk
         android:minSdkVersion="7"
         android:targetSdkVersion="18" />
+
     <uses-feature android:name="android.software.live_wallpaper" />
-    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -15,7 +18,7 @@
         android:label="@string/wallpapers"
         android:theme="@style/AppTheme" >
         <service
-            android:name=".CloudWaveWallpaper"
+            android:name="com.luboganev.cloudwave.CloudWaveWallpaper"
             android:label="@string/cloudwave"
             android:permission="android.permission.BIND_WALLPAPER" >
             <intent-filter>
@@ -28,11 +31,23 @@
         </service>
 
         <activity
-            android:name=".CloudWaveSettings"
+            android:name="com.luboganev.cloudwave.CloudWaveSettings"
             android:exported="true"
             android:label="@string/cloudwave_settings"
             android:theme="@android:style/Theme.Light.WallpaperSettings" >
         </activity>
+        <activity
+            android:name="com.luboganev.cloudwave.TestActivity"
+            android:label="@string/title_activity_test" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service android:name="com.luboganev.cloudwave.remote.SoundwaveDownloader" >
+        </service>
     </application>
 
 </manifest>

@@ -1,0 +1,58 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".TestActivity" 
+    android:orientation="vertical">
+
+
+    <ImageView
+        android:id="@+id/iv_track_soundwave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_launcher" />
+
+    <TextView
+        android:id="@+id/tv_track_text"
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" 
+        android:layout_marginTop="8dp">
+        
+        <EditText
+            android:id="@+id/et_username"
+            android:hint="Artist username"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10" >
+        </EditText>
+
+        <Button
+            android:id="@+id/btn_set_artist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set artist" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/orange" />
+
+    <Button
+        android:id="@+id/btn_load_random"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Random track" 
+        android:layout_marginTop="8dp"/>
+
+</LinearLayout>

@@ -1,6 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="wallpapers">Soundcloud live wallpaper</string>
     <string name="cloudwave">Cloudwave</string>
     <string name="cloudwave_desc">Shows the soundwave and name of a random track by chosen artist on Soundcloud.</string>
     <string name="cloudwave_settings">Settings</string>
+    <string name="title_activity_test">TestActivity</string>
 </resources>
