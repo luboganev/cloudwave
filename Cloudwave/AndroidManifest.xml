@@ -10,7 +10,11 @@
 
     <uses-feature android:name="android.software.live_wallpaper" />
 
+    <!-- Used by SoundCloud SDK and the functionality which downloads the sound wave images -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Used by CommunicationUtils for checking connection status -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -46,8 +50,16 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.luboganev.cloudwave.remote.SoundwaveDownloader" >
+        <service android:name="com.luboganev.cloudwave.remote.SoundCloudApiService" >
         </service>
+
+        <receiver
+            android:name=".remote.ConnectivityChangeReceiver"
+            android:enabled="false" >
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

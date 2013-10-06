@@ -1,4 +1,4 @@
-package com.luboganev.cloudwave.model;
+package com.luboganev.cloudwave.data;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -13,7 +13,7 @@ import android.content.Context;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.luboganev.cloudwave.Utils;
+import com.luboganev.cloudwave.LogUtils;
 
 public class LocalStorageManager {
 	public static final String LOCAL_STORAGE_FILE_NAME="soundwave_storage_json.txt";
@@ -34,7 +34,7 @@ public class LocalStorageManager {
 			String jsonString = readStreamAsString(fis);
 			return jsonString;
 		} catch (IOException x) {
-			Utils.e(this, "Cannot create or write to file");
+			LogUtils.e(this, "Cannot create or write to file");
 			return null;
 		} finally {
 			closeStreamSilently(fis);
@@ -48,7 +48,7 @@ public class LocalStorageManager {
 			fos = mApplicationContext.openFileOutput(LOCAL_STORAGE_FILE_NAME, Context.MODE_PRIVATE);
 			fos.write(json.getBytes());
 		} catch (IOException x) {
-			Utils.e(this, "Cannot create or write to file");
+			LogUtils.e(this, "Cannot create or write to file");
 		} finally {
 			closeStreamSilently(fos);
 		}

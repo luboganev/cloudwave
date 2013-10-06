@@ -5,7 +5,6 @@
     tools:context=".TestActivity" 
     android:orientation="vertical">
 
-
     <ImageView
         android:id="@+id/iv_track_soundwave"
         android:layout_width="match_parent"
@@ -19,6 +18,19 @@
         android:gravity="center"
         android:layout_height="wrap_content"
         android:text="TextView" />
+
+    <Button
+        android:id="@+id/btn_load_random"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Random track" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/orange" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -42,17 +54,25 @@
             android:text="Set artist" />
     </LinearLayout>
 
-    <View
+    <ScrollView
+        android:id="@+id/scrollView1"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="8dp"
-        android:background="@color/orange" />
+        android:layout_height="0dp"
+        android:layout_weight="1" >
 
-    <Button
-        android:id="@+id/btn_load_random"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Random track" 
-        android:layout_marginTop="8dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/tv_artist_tracks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:scrollbars="vertical" />
+
+        </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>

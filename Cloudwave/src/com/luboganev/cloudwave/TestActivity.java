@@ -3,9 +3,6 @@ package com.luboganev.cloudwave;
 import java.io.File;
 import java.io.IOException;
 
-import com.luboganev.cloudwave.remote.SoundwaveDownloader;
-import com.luboganev.cloudwave.remote.SoundwaveDownloader.DownloadState;
-
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,7 +13,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -24,12 +20,17 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.luboganev.cloudwave.remote.SoundCloudApiService;
+import com.luboganev.cloudwave.remote.SoundCloudApiService.RequestState;
+import com.luboganev.cloudwave.remote.SoundCloudApiService.RequestType;
+
 public class TestActivity extends Activity {
 	private Button mSetArtist;
 	private EditText mArtistName;
 	private Button mLoadRandomTrack;
 	private ImageView mTrackSoundwave;
 	private TextView mTrackText;
+	private TextView mArtistTracks;
 	
 	public static final String DUMMY_PICTURE = "https://w1.sndcdn.com/RhJ436DPf2Vx_m.png";
 	public static final String DUMMY_DIR = "soundwaves";
@@ -57,21 +58,27 @@ public class TestActivity extends Activity {
 		mLoadRandomTrack = (Button) findViewById(R.id.btn_load_random);
 		mTrackSoundwave = (ImageView) findViewById(R.id.iv_track_soundwave);
 		mTrackText = (TextView) findViewById(R.id.tv_track_text);
+		mArtistTracks = (TextView) findViewById(R.id.tv_artist_tracks);
 		
 		mSetArtist.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				//TODO: try reload artist from server
+				Intent intent = new Intent(TestActivity.this, SoundCloudApiService.class);
+				intent.putExtra(SoundCloudApiService.INPUT_EXTRA_START_REQUEST, 1);
+				intent.putExtra(SoundCloudApiService.INPUT_EXTRA_REQUEST_TYPE, RequestType.ARTIST);
+				intent.putExtra(SoundCloudApiService.INPUT_INTENT_EXTRA_ARTIST_NAME, mArtistName.getText().toString());
+				startService(intent);
 			}
 		});
 		
 		mLoadRandomTrack.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Intent intent = new Intent(TestActivity.this, SoundwaveDownloader.class);
-				intent.putExtra(SoundwaveDownloader.INPUT_EXTRA_START_DOWNLOAD, 1);
-				intent.putExtra(SoundwaveDownloader.INPUT_INTENT_EXTRA_LOCAL_URI, Uri.fromFile(mPictureFile).toString());
-				intent.putExtra(SoundwaveDownloader.INPUT_INTENT_EXTRA_SERVER_URI, DUMMY_PICTURE);
+				Intent intent = new Intent(TestActivity.this, SoundCloudApiService.class);
+				intent.putExtra(SoundCloudApiService.INPUT_EXTRA_START_REQUEST, 1);
+				intent.putExtra(SoundCloudApiService.INPUT_EXTRA_REQUEST_TYPE, RequestType.SOUNDWAVE);
+				intent.putExtra(SoundCloudApiService.INPUT_INTENT_EXTRA_LOCAL_URI, Uri.fromFile(mPictureFile).toString());
+				intent.putExtra(SoundCloudApiService.INPUT_INTENT_EXTRA_SERVER_URI, DUMMY_PICTURE);
 				startService(intent);
 			}
 		});
@@ -81,7 +88,7 @@ public class TestActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
-				mDownloadStateReceiver, new IntentFilter(SoundwaveDownloader.CALLBACK_INTENT_ACTION));
+				mDownloadStateReceiver, new IntentFilter(SoundCloudApiService.CALLBACK_INTENT_ACTION));
 	}
 	
 	@Override
@@ -94,19 +101,26 @@ public class TestActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String s = "";
-			DownloadState state = (DownloadState)intent.getSerializableExtra(SoundwaveDownloader.CALLBACK_EXTRA_DOWNLOAD_STATE);
-			if(state == DownloadState.RUNNING) {
+			RequestState state = (RequestState)intent.getSerializableExtra(SoundCloudApiService.CALLBACK_EXTRA_REQUEST_STATE);
+			RequestType type = (RequestType)intent.getSerializableExtra(SoundCloudApiService.CALLBACK_EXTRA_REQUEST_TYPE);
+			if(state == RequestState.RUNNING) {
 				s = "running";
 			}
-			else if(state == DownloadState.COMPLETED) {
+			else if(state == RequestState.COMPLETED) {
 				s = "completed";
-				Bitmap b = BitmapFactory.decodeFile(mPictureFile.getPath());
-				mTrackSoundwave.setImageBitmap(b);
+				String payload = intent.getStringExtra(SoundCloudApiService.CALLBACK_EXTRA_PAYLOAD);
+				if(type == RequestType.ARTIST) {
+					mArtistTracks.setText(payload);
+				}
+				else if(type == RequestType.SOUNDWAVE) {
+					Bitmap b = BitmapFactory.decodeFile(new File(Uri.parse(payload).getPath()).getPath());
+					mTrackSoundwave.setImageBitmap(b);
+				}
 			}
-			else if(state == DownloadState.CANCELED) {
+			else if(state == RequestState.CANCELED) {
 				s = "cancelled";
 			}
-			else if(state == DownloadState.FAILED) {
+			else if(state == RequestState.FAILED) {
 				s = "failed";
 			}
 			mTrackText.setText(s);

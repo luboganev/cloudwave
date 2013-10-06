@@ -1,4 +1,4 @@
-package com.luboganev.cloudwave.model;
+package com.luboganev.cloudwave.data;
 
 public class Track {
 	public long id;
