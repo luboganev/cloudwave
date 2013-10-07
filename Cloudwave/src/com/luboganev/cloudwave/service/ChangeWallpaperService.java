@@ -1,18 +1,16 @@
 package com.luboganev.cloudwave.service;
 
-
+import java.io.File;
 import java.util.Random;
-
 import android.content.Intent;
-import android.net.Uri;
-
 import com.commonsware.cwac.wakeful.WakefulIntentService;
 import com.luboganev.cloudwave.data.LocalStorage;
 import com.luboganev.cloudwave.data.LocalStorageManager;
 import com.luboganev.cloudwave.data.Track;
 
 /**
- *	
+ *	This IntentService manages the automatic change 
+ *  of random wallpaper in the background
  */
 public class ChangeWallpaperService extends WakefulIntentService {
 	public ChangeWallpaperService() {
@@ -25,26 +23,25 @@ public class ChangeWallpaperService extends WakefulIntentService {
 		LocalStorageManager manager = new LocalStorageManager(getApplicationContext());
 		LocalStorage storage = manager.getLocalStorage();
 		Track nextTrack = storage.userTracks.get(storage.nextRandomIndex);
-		//TODO: check if this track's soundwave is locally available
-		if(true) {
+		File file = manager.generateSoundwaveFileUri(nextTrack.id);
+		if(file.exists()) {
+			// we already have it
 			storage.currentTrack = nextTrack;
 			Random r = new Random(System.currentTimeMillis());
 			storage.nextRandomIndex = r.nextInt(storage.userTracks.size());
 			manager.saveLocalStorageToFile();
-			//TODO: signal the wallpaper that it needs to change
+			notifyUpdateWallpaper();
 		}
 		else {
-			// we will need to download the soundwave from the server
+			// we will need to download the soundwave from the server first
 			if(CommunicationUtils.hasInternetConnectivity(getApplicationContext())) {
-				//TODO: get a local file uri
-				Uri localFileUri = null;
-				if(CommunicationUtils.executeSoundwaveDownload(nextTrack.waveformUrl, localFileUri.toString())) {
+				if(CommunicationUtils.executeSoundwaveDownload(nextTrack.waveformUrl, file)) {
 					// file downloaded successfully
 					storage.currentTrack = nextTrack;
 					Random r = new Random(System.currentTimeMillis());
 					storage.nextRandomIndex = r.nextInt(storage.userTracks.size());
 					manager.saveLocalStorageToFile();
-					//TODO: signal the wallpaper that it needs to change
+					notifyUpdateWallpaper();
 				}
 			}
 			else {
@@ -52,5 +49,9 @@ public class ChangeWallpaperService extends WakefulIntentService {
 				CommunicationUtils.setConnectivityChangeReceiverEnabled(getApplicationContext(), true);
 			}
 		}
+	}
+	
+	private void notifyUpdateWallpaper() {
+		//TODO: signal the wallpaper that it needs to update
 	}
 }

@@ -3,7 +3,6 @@ package com.luboganev.cloudwave;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
-import android.preference.PreferenceManager;
 
 public class CloudWaveSettings extends PreferenceActivity
     implements SharedPreferences.OnSharedPreferenceChangeListener {

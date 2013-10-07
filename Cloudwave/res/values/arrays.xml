@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="soundwave_color_labels">
+        <item>orange</item>
+        <item>green</item>
+        <item>purple</item>
+        <item>blue</item>
+        <item>yellow</item>
+    </string-array>
+    
+    <integer-array name="soundwave_colors">
+        <item>0xbff7901e</item>
+        <item>0xbf8bc53f</item>
+        <item>0xbfa466aa</item>
+        <item>0xbf33b5e5</item>
+        <item>0xbffffc8b</item>
+    </integer-array>
+</resources>

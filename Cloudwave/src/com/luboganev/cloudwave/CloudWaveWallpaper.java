@@ -15,7 +15,6 @@ import android.view.SurfaceHolder;
  * It loads any necessary data from local storage in order to function properly offline
  */
 public class CloudWaveWallpaper extends WallpaperService {
-
     public static final String SHARED_PREFS_NAME="soundwave_settings";
 
     @Override

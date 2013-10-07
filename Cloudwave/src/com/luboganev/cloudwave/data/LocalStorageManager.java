@@ -1,6 +1,7 @@
 package com.luboganev.cloudwave.data;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -20,6 +21,10 @@ public class LocalStorageManager {
 	private LocalStorage mLocalStorage;
 	private final Gson mGson;
 	private final Context mApplicationContext;
+	
+	private static final String SOUNDWAVE_FILE_PREFIX = "soundwave_";
+	private static final String SOUNDWAVE_FILE_SUFFIX = ".png";
+	private static final String SOUNDWAVE_FILES_DIR = "soundwaves";
 	
 	public LocalStorageManager(Context applicationContext) {
 		mApplicationContext = applicationContext;
@@ -107,5 +112,19 @@ public class LocalStorageManager {
 	
 	public LocalStorage getLocalStorage() {
 		return mLocalStorage;
+	}
+	
+	/**
+	 * Gets the Uri of the local soundwave image of a particular track
+	 * 
+	 * @param trackId
+	 * 		The id of the track
+	 * @return
+	 * 		A File object with proper name
+	 */
+	public File generateSoundwaveFileUri(long trackId) {
+		File soundwaveDir = mApplicationContext.getDir(SOUNDWAVE_FILES_DIR, Context.MODE_PRIVATE);
+		File trackSoundwave = new File(soundwaveDir, SOUNDWAVE_FILE_PREFIX + trackId + SOUNDWAVE_FILE_SUFFIX);
+		return trackSoundwave;
 	}
 }

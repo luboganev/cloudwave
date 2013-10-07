@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 
 public class CommunicationUtils {
 	/**
@@ -64,11 +63,10 @@ public class CommunicationUtils {
 	 * @param intent
 	 * 		The starting intent containing the necessary params
 	 */
-	public static boolean executeSoundwaveDownload(String serverUrl, String localFileUri) {
-		File localFile = new File(Uri.parse(localFileUri).getPath());
-		
+	public static boolean executeSoundwaveDownload(String serverUrl, File localFile) {
 		InputStream input = null;
 		try {
+			localFile.createNewFile(); // create the file
 			HttpURLConnection conn = requestGet(serverUrl);
 			conn.connect();
 			if(conn.getResponseCode() == HttpStatus.SC_OK) {
@@ -97,7 +95,7 @@ public class CommunicationUtils {
 					// should not happen
 				}
         	}
-        	localFile.delete(); // we need to delete the local file on error
+        	if(localFile.exists()) localFile.delete(); // we need to delete the local file on error
             return false;
         }
 	}
