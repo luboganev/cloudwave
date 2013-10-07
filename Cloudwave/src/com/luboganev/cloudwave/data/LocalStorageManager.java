@@ -8,6 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Random;
 
 import android.content.Context;
 
@@ -29,24 +31,69 @@ public class LocalStorageManager {
 	public LocalStorageManager(Context applicationContext) {
 		mApplicationContext = applicationContext;
 		mGson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
-		readFromInternalFile();
+	}
+	
+	public boolean hasSavedLocalStorage() {
+		File storageFile = new File(mApplicationContext.getFilesDir(), LOCAL_STORAGE_FILE_NAME);
+		return storageFile.exists();
 	}
 
-	private String readFromInternalFile() {
+	public boolean loadFromFile() {
 		FileInputStream fis = null;
 		try {
 			fis = mApplicationContext.openFileInput(LOCAL_STORAGE_FILE_NAME);
 			String jsonString = readStreamAsString(fis);
-			return jsonString;
+			mLocalStorage = mGson.fromJson(jsonString, LocalStorage.class);
+			return true;
 		} catch (IOException x) {
-			LogUtils.e(this, "Cannot create or write to file");
-			return null;
+			LogUtils.e(this, "Cannot read the file");
+			return false;
 		} finally {
 			closeStreamSilently(fis);
 		}
 	}
-
-	public void saveLocalStorageToFile() {
+	
+	public void loadDefaultStorage() {
+		mLocalStorage = new LocalStorage();
+		mLocalStorage.artistUsername = "heedthesound";
+		mLocalStorage.artistTracks = new ArrayList<Track>();
+		mLocalStorage.currentTrack = null;
+		mLocalStorage.nextRandomIndex = -1;
+	}
+	
+	public void addTrack(long id, String title, String permalinkUrl, String waveformUrl) {
+		Track newTrack = new Track();
+		newTrack.id = id;
+		newTrack.title = title;
+		newTrack.permalinkUrl = permalinkUrl;
+		newTrack.waveformUrl = waveformUrl;
+		mLocalStorage.artistTracks.add(newTrack);
+	}
+	
+	public void pickNewNextRandomTrack() {
+		Random r = new Random(System.currentTimeMillis());
+		mLocalStorage.nextRandomIndex = r.nextInt(mLocalStorage.artistTracks.size());
+	}
+	
+	public Track getNextTrack() {
+		if(mLocalStorage.nextRandomIndex >= 0)
+			return mLocalStorage.artistTracks.get(mLocalStorage.nextRandomIndex);
+		else return null;
+	}
+	
+	public Track getCurrentTrack() {
+		return mLocalStorage.currentTrack;
+	}
+	
+	public void setNextAsCurrentTrack() {
+		mLocalStorage.currentTrack = getNextTrack();
+	}
+	
+	public String getArtistName() {
+		return mLocalStorage.artistUsername;
+	}
+	
+	public void saveToFile() {
 		String json = mGson.toJson(mLocalStorage);
 		FileOutputStream fos = null;
 		try {
@@ -108,10 +155,6 @@ public class LocalStorageManager {
 			throw new RuntimeException(
 					"This shouldn't happen. exception closing a file", x);
 		}
-	}
-	
-	public LocalStorage getLocalStorage() {
-		return mLocalStorage;
 	}
 	
 	/**

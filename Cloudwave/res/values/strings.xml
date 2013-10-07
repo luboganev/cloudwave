@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <string name="wallpapers">Soundcloud live wallpaper</string>
-    <string name="cloudwave">Cloudwave</string>
-    <string name="cloudwave_desc">Shows the soundwave and name of a random track by chosen artist on Soundcloud.</string>
-    <string name="cloudwave_settings">Settings</string>
-    <string name="title_activity_test">TestActivity</string>
-    
-    <string name="settings_artist_title">Artist username</string>
-    <string name="settings_artist_description">The username of the artist whose tracks will be shown by the live wallpaper</string>
-    
-    <string name="settings_soundwave_color_title">Soundwave color</string>
-    <string name="settings_soundwave_color_description">The color of the soundwave that will be shown in the live wallpaper</string>
+    <string name="wallpapers">Heed The Sound Soundcloud live wallpaper</string>
+    <string name="cloudwave">Heed The Sound cloudwave</string>
+    <string name="cloudwave_desc">Shows the soundwaves and names of random tracks by Heed the Sound on Soundcloud.</string>
 </resources>

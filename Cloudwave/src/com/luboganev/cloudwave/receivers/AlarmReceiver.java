@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.commonsware.cwac.wakeful.WakefulIntentService;
+import com.luboganev.cloudwave.LogUtils;
 import com.luboganev.cloudwave.service.ChangeWallpaperService;
 
 /**
@@ -14,6 +15,7 @@ import com.luboganev.cloudwave.service.ChangeWallpaperService;
 public class AlarmReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
+		LogUtils.d(this, "Received change wallpaper alarm");
 		Intent serviceIntent = new Intent(context, ChangeWallpaperService.class);
 		WakefulIntentService.sendWakefulWork(context, serviceIntent);
 	}

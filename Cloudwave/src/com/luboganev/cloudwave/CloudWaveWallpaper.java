@@ -1,10 +1,13 @@
 package com.luboganev.cloudwave;
 
-import android.content.SharedPreferences;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.os.Handler;
+import com.luboganev.cloudwave.data.LocalStorage;
+import com.luboganev.cloudwave.data.LocalStorageManager;
+import com.luboganev.cloudwave.receivers.AlarmReceiver;
+
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.os.SystemClock;
 import android.service.wallpaper.WallpaperService;
 import android.view.MotionEvent;
@@ -15,16 +18,16 @@ import android.view.SurfaceHolder;
  * It loads any necessary data from local storage in order to function properly offline
  */
 public class CloudWaveWallpaper extends WallpaperService {
-    public static final String SHARED_PREFS_NAME="soundwave_settings";
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
+    /**
+     * Builds and returns the pending intent for the 
+     * change wallpaper alarm
+     * 
+     * @param context
+     * 		Context needed when building the intent and pending intent objects
+     */
+    private static PendingIntent getAlarmPendingIntent(Context context) {
+    	Intent i = new Intent(context, AlarmReceiver.class);
+        return PendingIntent.getBroadcast(context, 0, i, 0);
     }
 
     @Override
@@ -32,37 +35,42 @@ public class CloudWaveWallpaper extends WallpaperService {
         return new CubeEngine();
     }
     
-    class CubeEngine extends Engine 
-        implements SharedPreferences.OnSharedPreferenceChangeListener {
-
+    class CubeEngine extends Engine  {
         private float mOffset;
         private float mTouchX = -1;
         private float mTouchY = -1;
         private float mCenterX;
         private float mCenterY;
-
         private boolean mVisible;
-        private SharedPreferences mPrefs;
+        
+        private LocalStorageManager mLocalStorageManager;
 
         CubeEngine() {
-            mPrefs = CloudWaveWallpaper.this.getSharedPreferences(SHARED_PREFS_NAME, 0);
-            mPrefs.registerOnSharedPreferenceChangeListener(this);
-            onSharedPreferenceChanged(mPrefs, null);
-        }
-
-        public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-        	// TODO: react on changed preferences
+        	mLocalStorageManager = new LocalStorageManager(getApplicationContext());
         }
 
         @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
             setTouchEventsEnabled(true);
+            if(!isPreview()) {
+            	// setup a repeating alarm for change of wallpaper
+                AlarmManager mgr = (AlarmManager)getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+                // alarm does not have to be exact, e.g. nobody sees the wallpaper 
+                // when device is sleeping, so no point changing it
+                mgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+                                  SystemClock.elapsedRealtime() + 1000,
+                                  AlarmManager.INTERVAL_HOUR,
+                                  getAlarmPendingIntent(getApplicationContext()));
+            }
         }
 
         @Override
         public void onDestroy() {
             super.onDestroy();
+            // cancel the repeating change wallpaper alarm
+            AlarmManager mgr = (AlarmManager)getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+            mgr.cancel(getAlarmPendingIntent(getApplicationContext()));
         }
 
         @Override
@@ -105,17 +113,17 @@ public class CloudWaveWallpaper extends WallpaperService {
             //TODO: draw the wallpaper
         }
 
-        @Override
-        public void onTouchEvent(MotionEvent event) {
-        	//TODO: implement the recognition of double tap
-            if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                mTouchX = event.getX();
-                mTouchY = event.getY();
-            } else {
-                mTouchX = -1;
-                mTouchY = -1;
-            }
-            super.onTouchEvent(event);
-        }
+//        @Override
+//        public void onTouchEvent(MotionEvent event) {
+//        	//TODO: implement the recognition of double tap
+//            if (event.getAction() == MotionEvent.ACTION_MOVE) {
+//                mTouchX = event.getX();
+//                mTouchY = event.getY();
+//            } else {
+//                mTouchX = -1;
+//                mTouchY = -1;
+//            }
+//            super.onTouchEvent(event);
+//        }
     }
 }

@@ -16,9 +16,6 @@
     <!-- Needed by CommunicationUtils for checking connection status -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     
-    <!-- Needed by BootReceiver to setup alarms according to settings -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    
     <!-- Needed when starting ChangeWallpaperService from AlarmReceiver or 
     ConnectivityChangeReceiver in order to make sure the necessary work is 
     done before going back to sleep -->
@@ -29,17 +26,6 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/wallpapers"
         android:theme="@style/AppTheme" >
-        <activity
-            android:name="com.luboganev.cloudwave.TestActivity"
-            android:label="@string/title_activity_test" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        
-        
         <service
             android:name="com.luboganev.cloudwave.CloudWaveWallpaper"
             android:label="@string/cloudwave"
@@ -53,21 +39,18 @@
                 android:resource="@xml/cloudwave" />
         </service>
         
-        <activity
-            android:name="com.luboganev.cloudwave.CloudWaveSettings"
-            android:exported="true"
-            android:label="@string/cloudwave_settings"
-            android:theme="@style/AppTheme" >
-        </activity>
+		<activity
+			android:name="com.luboganev.cloudwave.TestActivity"
+			android:label="TestActivity" >
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+        
         
         <service android:name="com.luboganev.cloudwave.service.ChangeWallpaperService" >
         </service>
-        
-        <receiver android:name="com.luboganev.cloudwave.receivers.BootReceiver">
-			<intent-filter>
-				<action android:name="android.intent.action.BOOT_COMPLETED"/>
-			</intent-filter>
-		</receiver>
 		
 		<receiver android:name="com.luboganev.cloudwave.receivers.AlarmReceiverer">
 		</receiver>

@@ -1,6 +1,7 @@
 package com.luboganev.cloudwave.service;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -37,7 +38,8 @@ public class CommunicationUtils {
 		ConnectivityManager connManager = (ConnectivityManager)applicationContext.
 				   getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo info = connManager.getActiveNetworkInfo();
-		return info.isConnected();
+		if(info != null) return info.isConnected();
+		else return false;
 	}
 	
 	/**
@@ -123,7 +125,7 @@ public class CommunicationUtils {
 			conn.connect();
 			if(conn.getResponseCode() == HttpStatus.SC_OK) {
 				responseStream = conn.getInputStream();
-				String response = readIt(responseStream, conn.getContentLength());
+				String response = readIt(responseStream);
 				responseStream.close();
 				return response;
 			}
@@ -170,25 +172,20 @@ public class CommunicationUtils {
 	 * 
 	 * @param stream
 	 * 		The InputStream
-	 * @param len
-	 * 		The length of the data to be read from the InputStream
 	 * @return
 	 * 		The read string
 	 * @throws IOException
 	 * 		If reading fails
 	 */
-	private static String readIt(InputStream stream, int len) throws IOException {
-		Reader reader = null;
-		try {
-			reader = new InputStreamReader(stream, "UTF-8");        
-		}
-		catch(UnsupportedEncodingException e) {
-			// this should not happen, how come that UTF-8 is unsupported?
-			return "";
-		}
-		char[] buffer = new char[len];
-		reader.read(buffer);
-		return new String(buffer);
+	private static String readIt(InputStream stream) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = br.readLine()) != null) {
+            sb.append(line+"\n");
+        }
+        br.close();
+        return sb.toString();
 	}
 	
 	/**
