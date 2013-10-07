@@ -1,8 +1,7 @@
 
-package com.luboganev.cloudwave.remote;
+package com.luboganev.cloudwave.service;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -10,23 +9,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
-
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-
 import android.app.IntentService;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
-
 import com.luboganev.cloudwave.LogUtils;
 
 /**
@@ -159,7 +151,7 @@ public class SoundCloudApiService extends IntentService {
 	/** The input extra containing the Uri of the local downloaded sound wave file */
 	public static final String INPUT_INTENT_EXTRA_LOCAL_URI = "local_uri";
 	/** The input extra containing the Url of the remote sound wave file */
-	public static final String INPUT_INTENT_EXTRA_SERVER_URI = "server_uri";
+	public static final String INPUT_INTENT_EXTRA_SERVER_URL = "server_url";
 	/** The callback extra containing the name of the artist whose tracks are to be fetched */
 	public static final String INPUT_INTENT_EXTRA_ARTIST_NAME = "artist_name";
 	
@@ -194,6 +186,7 @@ public class SoundCloudApiService extends IntentService {
 				executeFetchArtistTracks(intent);
 			}
 		}
+		stopSelf();
 	}
 	
 	/**
@@ -204,51 +197,29 @@ public class SoundCloudApiService extends IntentService {
 	 * 		The starting intent containing the necessary params
 	 */
 	private boolean executeSoundwaveDownload(Intent intent) {
-		String serverUri = intent.getStringExtra(INPUT_INTENT_EXTRA_SERVER_URI);
+		String serverUrl = intent.getStringExtra(INPUT_INTENT_EXTRA_SERVER_URL);
 		String localFileUri = intent.getStringExtra(INPUT_INTENT_EXTRA_LOCAL_URI);
 		File localFile = new File(Uri.parse(localFileUri).getPath());
 		
 		InputStream input = null;
-		OutputStream output = null;
 		try {
-            URL url = new URL(serverUri);
-            URLConnection connection = url.openConnection();
-            connection.connect();
-            // this will be useful so in order to log 0-100% progress
-            int fileLength = connection.getContentLength();
-
-            // download the file
-            input = new BufferedInputStream(url.openStream());
-            output = new FileOutputStream(localFile);
-
-            byte data[] = new byte[1024];
-            long total = 0;
-            int count;
-            while ((count = input.read(data)) != -1) {
-            	
-            	// Check if download was cancelled
-            	if(mRequestState == RequestState.CANCELED) {
-            		output.flush();
-                    output.close();
-                    input.close();
-                    localFile.delete();
-                    return true; // explicit cancel is not an error so we return true
-            	}
-            	
-                total += count;
-                // publishing the progress....
-                int currentProgress = (int) (total * 100 / fileLength);
-                Log.d("ProfilePicture", currentProgress + "%"); //TODO: fix messages
-                output.write(data, 0, count);
-            }
-            output.flush();
-            output.close();
-            input.close();
-            
-            // completed, send completed callback and return
-            mRequestState = RequestState.COMPLETED;
-            sendRequestStateCallback(Uri.fromFile(localFile).toString());
-            return true;
+			HttpURLConnection conn = requestGet(serverUrl);
+			conn.connect();
+			if(conn.getResponseCode() == HttpStatus.SC_OK) {
+				input = new BufferedInputStream(conn.getInputStream());
+				readToFile(input, conn.getContentLength(), localFile);
+				input.close();
+				// completed, send completed callback and return
+				mRequestState = RequestState.COMPLETED;
+				sendRequestStateCallback(Uri.fromFile(localFile).toString());
+			    return true;
+			}
+			else {
+				LogUtils.e(this, "HTTP Status " + conn.getResponseCode());
+				mRequestState = RequestState.FAILED;
+				sendRequestStateCallback();
+				return false;
+			}
 		} catch (FileNotFoundException e) {
 			if(input != null) {
 				try {
@@ -268,15 +239,7 @@ public class SoundCloudApiService extends IntentService {
 					// should not happen
 				}
         	}
-        	if(output != null) {
-        		try {
-					output.flush();
-					output.close();
-				} catch (IOException e1) {
-					// should not happen
-				}
-        	}
-        	localFile.delete();
+        	localFile.delete(); // we need to delete the local file on error
     		mRequestState = RequestState.FAILED;
             sendRequestStateCallback();
             return false;
@@ -301,32 +264,131 @@ public class SoundCloudApiService extends IntentService {
 			return false;
 		}
 		String requestUrl = "https://api.soundcloud.com/users/"+username+"/tracks.json?consumer_key=f15a8f33d2b9a4eb9ab8e3f96f8baa35";
+		InputStream responseStream = null;
 		try {
-			HttpGet getRequest = new HttpGet(requestUrl);
-			HttpClient client = new DefaultHttpClient();
-			HttpResponse resp = client.execute(getRequest);
-			
-			if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent(), "UTF-8"));
-				StringBuilder builder = new StringBuilder();
-				for (String line = null; (line = reader.readLine()) != null;) {
-				    builder.append(line).append("\n");
-				}
+			HttpURLConnection conn = requestGet(requestUrl);
+			conn.connect();
+			if(conn.getResponseCode() == HttpStatus.SC_OK) {
+				responseStream = conn.getInputStream();
+				String response = readIt(responseStream, conn.getContentLength());
+				responseStream.close();
 				// completed, send completed callback and return
 				mRequestState = RequestState.COMPLETED;
-				sendRequestStateCallback(builder.toString());
+				sendRequestStateCallback(response);
 			    return true;
-			} else {
-				LogUtils.e(this, resp.getStatusLine().toString());
+			}
+			else {
+				LogUtils.e(this, "HTTP Status " + conn.getResponseCode());
 				mRequestState = RequestState.FAILED;
 				sendRequestStateCallback();
 				return false;
 			}
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
+			if(responseStream != null) {
+				try {
+					responseStream.close();
+				} catch (IOException e1) {
+					// this should never happen
+				}
+			}
 			mRequestState = RequestState.FAILED;
 			sendRequestStateCallback();
 			return false;
 		}
-        
+	}
+	
+	/**
+	 * Sets up and opens a new HttpURLConnection to perform a HTTP GET request. 
+	 * One can then directly call the {@link HttpURLConnection#connect()} and
+	 * read the response code and read the response through its InputStream.
+	 * 
+	 * @param url
+	 * 		The url of the request
+	 * @return
+	 * 		The setup HttpURLConnection object
+	 * @throws IOException
+	 * 		If something went wrong during establishing connection
+	 */
+	private HttpURLConnection requestGet(String url) throws IOException {
+        URL getUrl = new URL(url);
+        HttpURLConnection conn = (HttpURLConnection) getUrl.openConnection();
+        conn.setReadTimeout(10000);
+        conn.setConnectTimeout(15000);
+        conn.setRequestMethod("GET");
+        conn.setDoInput(true);
+        return conn;
+	}
+	
+	/**
+	 * Reads an InputStream as an UTF-8 string
+	 * 
+	 * @param stream
+	 * 		The InputStream
+	 * @param len
+	 * 		The length of the data to be read from the InputStream
+	 * @return
+	 * 		The read string
+	 * @throws IOException
+	 * 		If reading fails
+	 */
+	public String readIt(InputStream stream, int len) throws IOException {
+		Reader reader = null;
+		try {
+			reader = new InputStreamReader(stream, "UTF-8");        
+		}
+		catch(UnsupportedEncodingException e) {
+			// this should not happen
+			LogUtils.e(this, "How come that UTF-8 is unsupported?");
+			return "";
+		}
+		char[] buffer = new char[len];
+		reader.read(buffer);
+		return new String(buffer);
+	}
+	
+	/**
+	 * Reads an InputStream into a local file
+	 * 
+	 * @param stream
+	 *            The InputStream
+	 * @param len
+	 *            The length of the data to be read from the InputStream
+	 * @throws IOException
+	 *             If reading or writing fails
+	 */
+	public void readToFile(InputStream in, int length, File localFile) throws IOException, FileNotFoundException {
+		OutputStream output = null;
+		try {
+			output = new FileOutputStream(localFile);
+			// download the file
+			in = new BufferedInputStream(in);
+			byte data[] = new byte[1024];
+			long total = 0;
+			int count;
+			while ((count = in.read(data)) != -1) {
+	
+				// Check if download was cancelled
+				if (mRequestState == RequestState.CANCELED) {
+					output.flush();
+					output.close();
+					localFile.delete(); // remove the created local file
+				}
+	
+				total += count;
+				// publishing the progress....
+				int currentProgress = (int) (total * 100 / length);
+				LogUtils.d(this, currentProgress + "%");
+				output.write(data, 0, count);
+			}
+			output.flush();
+			output.close();
+		}
+		finally {
+			if(output != null) {
+				output.flush(); // close the local file in any case
+				output.close();
+			}
+		}
 	}
 }

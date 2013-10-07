@@ -6,4 +6,5 @@ public class LocalStorage {
 	public User user;
 	public ArrayList<Track> userTracks;
 	public Track currentTrack;
+	public int nextRandomIndex;
 }

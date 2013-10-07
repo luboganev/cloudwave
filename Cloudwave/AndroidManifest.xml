@@ -10,17 +10,36 @@
 
     <uses-feature android:name="android.software.live_wallpaper" />
 
-    <!-- Used by SoundCloud SDK and the functionality which downloads the sound wave images -->
+    <!-- Needed by CommunicationUtils to communicate over HTTP with SoundCloud API -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Used by CommunicationUtils for checking connection status -->
+    <!-- Needed by CommunicationUtils for checking connection status -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
+    <!-- Needed by BootReceiver to setup alarms according to settings -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    
+    <!-- Needed when starting ChangeWallpaperService from AlarmReceiver or 
+    ConnectivityChangeReceiver in order to make sure the necessary work is 
+    done before going back to sleep -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/wallpapers"
         android:theme="@style/AppTheme" >
+        <activity
+            android:name="com.luboganev.cloudwave.TestActivity"
+            android:label="@string/title_activity_test" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
+        
         <service
             android:name="com.luboganev.cloudwave.CloudWaveWallpaper"
             android:label="@string/cloudwave"
@@ -33,33 +52,34 @@
                 android:name="android.service.wallpaper"
                 android:resource="@xml/cloudwave" />
         </service>
-
+        
         <activity
             android:name="com.luboganev.cloudwave.CloudWaveSettings"
             android:exported="true"
             android:label="@string/cloudwave_settings"
             android:theme="@android:style/Theme.Light.WallpaperSettings" >
         </activity>
-        <activity
-            android:name="com.luboganev.cloudwave.TestActivity"
-            android:label="@string/title_activity_test" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <service android:name="com.luboganev.cloudwave.remote.SoundCloudApiService" >
+        
+        <service android:name="com.luboganev.cloudwave.service.ChangeWallpaperService" >
         </service>
+        
+        <receiver android:name="com.luboganev.cloudwave.receivers.BootReceiver">
+			<intent-filter>
+				<action android:name="android.intent.action.BOOT_COMPLETED"/>
+			</intent-filter>
+		</receiver>
+		
+		<receiver android:name="com.luboganev.cloudwave.receivers.AlarmReceiverer">
+		</receiver>
 
         <receiver
-            android:name=".remote.ConnectivityChangeReceiver"
+            android:name="com.luboganev.cloudwave.receivers.ConnectivityChangeReceiver"
             android:enabled="false" >
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
         </receiver>
+        
     </application>
 
 </manifest>

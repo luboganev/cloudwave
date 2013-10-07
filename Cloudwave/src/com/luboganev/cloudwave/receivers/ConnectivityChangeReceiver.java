@@ -1,5 +1,8 @@
-package com.luboganev.cloudwave.remote;
+package com.luboganev.cloudwave.receivers;
 
+import com.commonsware.cwac.wakeful.WakefulIntentService;
+import com.luboganev.cloudwave.service.ChangeWallpaperService;
+import com.luboganev.cloudwave.service.CommunicationUtils;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -17,8 +20,9 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		if(CommunicationUtils.hasInternetConnectivity(context)) {
-			//TODO: call service to do some useful work
-			
+			// we have internet, have the change wallpaper service called
+			Intent serviceIntent = new Intent(context, ChangeWallpaperService.class);
+			WakefulIntentService.sendWakefulWork(context, serviceIntent);
 			// disable this broadcastReceiver
 			CommunicationUtils.setConnectivityChangeReceiverEnabled(context, false);
 		}

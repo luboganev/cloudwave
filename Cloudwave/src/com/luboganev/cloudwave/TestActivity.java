@@ -20,9 +20,9 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.luboganev.cloudwave.remote.SoundCloudApiService;
-import com.luboganev.cloudwave.remote.SoundCloudApiService.RequestState;
-import com.luboganev.cloudwave.remote.SoundCloudApiService.RequestType;
+import com.luboganev.cloudwave.service.SoundCloudApiService;
+import com.luboganev.cloudwave.service.SoundCloudApiService.RequestState;
+import com.luboganev.cloudwave.service.SoundCloudApiService.RequestType;
 
 public class TestActivity extends Activity {
 	private Button mSetArtist;
@@ -78,7 +78,7 @@ public class TestActivity extends Activity {
 				intent.putExtra(SoundCloudApiService.INPUT_EXTRA_START_REQUEST, 1);
 				intent.putExtra(SoundCloudApiService.INPUT_EXTRA_REQUEST_TYPE, RequestType.SOUNDWAVE);
 				intent.putExtra(SoundCloudApiService.INPUT_INTENT_EXTRA_LOCAL_URI, Uri.fromFile(mPictureFile).toString());
-				intent.putExtra(SoundCloudApiService.INPUT_INTENT_EXTRA_SERVER_URI, DUMMY_PICTURE);
+				intent.putExtra(SoundCloudApiService.INPUT_INTENT_EXTRA_SERVER_URL, DUMMY_PICTURE);
 				startService(intent);
 			}
 		});
