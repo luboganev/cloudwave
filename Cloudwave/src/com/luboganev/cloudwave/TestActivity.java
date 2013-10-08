@@ -8,7 +8,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Shader;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapFactory.Options;
+import android.graphics.Shader.TileMode;
+import android.graphics.BitmapShader;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
@@ -100,8 +110,33 @@ public class TestActivity extends Activity {
 			tv.setText(track.title + "\r\n" + track.permalinkUrl + "\r\n" + track.waveformUrl);
 			
 			ImageView iv = (ImageView)findViewById(R.id.iv_track_soundwave);
-			Bitmap b = BitmapFactory.decodeFile(manager.generateSoundwaveFileUri(track.id).getPath());
-			iv.setImageBitmap(b);
+			Options opt = new Options();
+			opt.inPreferredConfig = Config.ALPHA_8;
+			Bitmap soundwavePattern = BitmapFactory.decodeFile(manager.generateSoundwaveFileUri(track.id).getPath(), opt);
+			
+			// create background
+            Bitmap background = Bitmap.createBitmap(soundwavePattern.getWidth(), soundwavePattern.getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(background);
+            canvas.drawColor(getApplicationContext().getResources().getColor(R.color.black));
+            
+            // draw the inside of the sound wave
+            int sc = canvas.saveLayer(0, 0, background.getWidth(), background.getHeight(), null,
+                                      Canvas.MATRIX_SAVE_FLAG |
+                                      Canvas.CLIP_SAVE_FLAG |
+                                      Canvas.HAS_ALPHA_LAYER_SAVE_FLAG |
+                                      Canvas.FULL_COLOR_LAYER_SAVE_FLAG |
+                                      Canvas.CLIP_TO_LAYER_SAVE_FLAG);
+            
+            Paint paint = new Paint();
+            paint.setFilterBitmap(false);
+            paint.setColor(getApplicationContext().getResources().getColor(R.color.orange));
+            canvas.drawPaint(paint);
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
+            canvas.drawBitmap(soundwavePattern, 0, 0, paint);
+            paint.setXfermode(null);
+            canvas.restoreToCount(sc);
+            
+			iv.setImageBitmap(background);
 		}
 	}
 	

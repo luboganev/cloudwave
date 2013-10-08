@@ -3,4 +3,7 @@
     <string name="wallpapers">Heed The Sound Soundcloud live wallpaper</string>
     <string name="cloudwave">Heed The Sound cloudwave</string>
     <string name="cloudwave_desc">Shows the soundwaves and names of random tracks by Heed the Sound on Soundcloud.</string>
+    
+    <string name="heed_the_sound_sample_title">VA - Chillstep Dreams Vol. 01</string>
+    <string name="heed_the_sound_sample_permalink">http://soundcloud.com/heedthesound/chillstep-dreams-vol-01</string>
 </resources>
