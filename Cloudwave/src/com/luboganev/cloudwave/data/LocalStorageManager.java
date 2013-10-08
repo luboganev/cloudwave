@@ -18,8 +18,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.luboganev.cloudwave.LogUtils;
 
+/**
+ * The local storage manager is responsible for reading and writing all locally cached data
+ */
 public class LocalStorageManager {
-	public static final String LOCAL_STORAGE_FILE_NAME="soundwave_storage_json.txt";
+	private static final String LOCAL_STORAGE_FILE_NAME="soundwave_storage_json.txt";
 	private LocalStorage mLocalStorage;
 	private final Gson mGson;
 	private final Context mApplicationContext;
@@ -33,11 +36,21 @@ public class LocalStorageManager {
 		mGson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
 	}
 	
+	/**
+	 * Checks for existing persisted local storage
+	 * 
+	 * @return
+	 * 		Persisted local storage exists
+	 */
 	public boolean hasSavedLocalStorage() {
 		File storageFile = new File(mApplicationContext.getFilesDir(), LOCAL_STORAGE_FILE_NAME);
 		return storageFile.exists();
 	}
 
+	/**
+	 * @return
+	 * 		Loads a previously saved local storage from disk
+	 */
 	public boolean loadFromFile() {
 		FileInputStream fis = null;
 		try {
@@ -53,14 +66,29 @@ public class LocalStorageManager {
 		}
 	}
 	
+	/**
+	 * Loads a default empty storage for the default artist
+	 */
 	public void loadDefaultStorage() {
 		mLocalStorage = new LocalStorage();
 		mLocalStorage.artistUsername = "heedthesound";
 		mLocalStorage.artistTracks = new ArrayList<Track>();
-		mLocalStorage.currentTrack = null;
+		mLocalStorage.currentTrackIndex = -1;
 		mLocalStorage.nextRandomIndex = -1;
 	}
 	
+	/**
+	 * Adds a new track object to the list of tracks
+	 * 
+	 * @param id
+	 * 		Track id
+	 * @param title
+	 * 		Track title
+	 * @param permalinkUrl
+	 * 		Track permalink url
+	 * @param waveformUrl
+	 * 		Track waveform url
+	 */
 	public void addTrack(long id, String title, String permalinkUrl, String waveformUrl) {
 		Track newTrack = new Track();
 		newTrack.id = id;
@@ -70,29 +98,50 @@ public class LocalStorageManager {
 		mLocalStorage.artistTracks.add(newTrack);
 	}
 	
+	/**
+	 * Picks a new random index from the tracks list as next track index
+	 */
 	public void pickNewNextRandomTrack() {
 		Random r = new Random(System.currentTimeMillis());
 		mLocalStorage.nextRandomIndex = r.nextInt(mLocalStorage.artistTracks.size());
 	}
 	
+	/**
+	 * @return
+	 * 		The next track
+	 */
 	public Track getNextTrack() {
 		if(mLocalStorage.nextRandomIndex >= 0)
 			return mLocalStorage.artistTracks.get(mLocalStorage.nextRandomIndex);
 		else return null;
 	}
 	
+	/**
+	 * @return
+	 * 		The current track
+	 */
 	public Track getCurrentTrack() {
-		return mLocalStorage.currentTrack;
+		return mLocalStorage.artistTracks.get(mLocalStorage.currentTrackIndex);
 	}
 	
+	/**
+	 * Picks the next track as the current track
+	 */
 	public void setNextAsCurrentTrack() {
-		mLocalStorage.currentTrack = getNextTrack();
+		mLocalStorage.currentTrackIndex = mLocalStorage.nextRandomIndex;
 	}
 	
+	/**
+	 * @return
+	 * 		String containing the artist's name
+	 */
 	public String getArtistName() {
 		return mLocalStorage.artistUsername;
 	}
 	
+	/**
+	 * Persists the currently loaded {@link LocalStorage}
+	 */
 	public void saveToFile() {
 		String json = mGson.toJson(mLocalStorage);
 		FileOutputStream fos = null;
@@ -106,6 +155,10 @@ public class LocalStorageManager {
 		}
 	}
 
+	/**
+	 * Helper method which reads all inputstream contents 
+	 * and writes them to an outputstream
+	 */
 	private void copy(InputStream reader, OutputStream writer)
 			throws IOException {
 		byte byteArray[] = new byte[4092];
@@ -120,6 +173,9 @@ public class LocalStorageManager {
 		return;
 	}
 
+	/**
+	 * Helper method which reads all inputstream contents as string
+	 */
 	private String readStreamAsString(InputStream is)
 			throws FileNotFoundException, IOException {
 		ByteArrayOutputStream baos = null;
@@ -133,6 +189,9 @@ public class LocalStorageManager {
 		}
 	}
 
+	/**
+	 * Helper method that closes OutputStreams
+	 */
 	private void closeStreamSilently(OutputStream os) {
 		if (os == null)
 			return;
@@ -145,6 +204,9 @@ public class LocalStorageManager {
 		}
 	}
 
+	/**
+	 * Helper method that closes InputStreams
+	 */
 	private void closeStreamSilently(InputStream os) {
 		if (os == null)
 			return;
@@ -158,7 +220,7 @@ public class LocalStorageManager {
 	}
 	
 	/**
-	 * Gets the Uri of the local soundwave image of a particular track
+	 * Gets a file of the local soundwave image of a particular track
 	 * 
 	 * @param trackId
 	 * 		The id of the track

@@ -4,3 +4,5 @@
 	android:thumbnail="@drawable/ic_launcher"
 	android:description="@string/cloudwave_desc"
 />
+
+<!-- TODO: make nice thumbnail -->

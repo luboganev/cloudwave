@@ -1,9 +1,9 @@
 package com.luboganev.cloudwave;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -13,34 +13,49 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory.Options;
 import android.graphics.Rect;
-import android.os.SystemClock;
 import android.service.wallpaper.WallpaperService;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.SurfaceHolder;
 
 import com.luboganev.cloudwave.data.LocalStorageManager;
 import com.luboganev.cloudwave.data.Track;
 import com.luboganev.cloudwave.receivers.AlarmReceiver;
+import com.luboganev.cloudwave.service.ChangeWallpaperService;
 
 /**
  * This live wallpaper draws the soundwave and name of a random Soundcloud track by an artist.
  * It loads any necessary data from local storage in order to function properly offline
  */
 public class CloudWaveWallpaper extends WallpaperService {
-    /**
-     * Builds and returns the pending intent for the 
-     * change wallpaper alarm
-     * 
-     * @param context
-     * 		Context needed when building the intent and pending intent objects
-     */
-    private static PendingIntent getAlarmPendingIntent(Context context) {
-    	Intent i = new Intent(context, AlarmReceiver.class);
-        return PendingIntent.getBroadcast(context, 0, i, 0);
-    }
-
+	private CubeEngine mWallpaperEngine;
+	private ChangedWallpaperReceiver mChangeWallpaperReceiver = new ChangedWallpaperReceiver();
+	
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
+				mChangeWallpaperReceiver, new IntentFilter(ChangeWallpaperService.INTENT_ACTION_NOTIFY_WALLPAPER_CHANGE));
+	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(mChangeWallpaperReceiver);
+	}
+	
     @Override
     public Engine onCreateEngine() {
-        return new CubeEngine();
+    	mWallpaperEngine = new CubeEngine();
+        return mWallpaperEngine;
+    }
+    
+    private class ChangedWallpaperReceiver extends BroadcastReceiver {
+    	@Override
+		public void onReceive(Context context, Intent intent) {
+    		if(mWallpaperEngine != null) {
+				mWallpaperEngine.changeWallpaper();
+    		}
+    	}
     }
     
     class CubeEngine extends Engine  {
@@ -56,14 +71,6 @@ public class CloudWaveWallpaper extends WallpaperService {
         	LocalStorageManager manager = new LocalStorageManager(getApplicationContext());
         	if(mCurrentSoundwave != null) mCurrentSoundwave.recycle();
         	if(manager.hasSavedLocalStorage()) {
-        		// nothing downloaded, so we load the sample data
-        		mPermalinkUrl = getResources().getString(R.string.heed_the_sound_sample_permalink);
-        		mTitle = getResources().getString(R.string.heed_the_sound_sample_title);
-        		Options opt = new Options();
-				opt.inPreferredConfig = Config.ALPHA_8;
-				mCurrentSoundwave = BitmapFactory.decodeResource(getResources(), R.drawable.heed_the_sound_sample, opt);
-        	}
-        	else {
         		manager.loadFromFile();
         		Track track = manager.getCurrentTrack();
         		Options opt = new Options();
@@ -72,6 +79,14 @@ public class CloudWaveWallpaper extends WallpaperService {
 				mTitle = track.title;
 				mCurrentSoundwave = BitmapFactory.decodeFile(manager.generateSoundwaveFileUri(track.id).getPath(), opt);
         	}
+        	else {
+        		// nothing downloaded, so we load the sample data
+        		mPermalinkUrl = getResources().getString(R.string.heed_the_sound_sample_permalink);
+        		mTitle = getResources().getString(R.string.heed_the_sound_sample_title);
+        		Options opt = new Options();
+        		opt.inPreferredConfig = Config.ALPHA_8;
+        		mCurrentSoundwave = BitmapFactory.decodeResource(getResources(), R.drawable.heed_the_sound_sample, opt);
+        	}
         }
 
         @Override
@@ -79,14 +94,7 @@ public class CloudWaveWallpaper extends WallpaperService {
             super.onCreate(surfaceHolder);
             setTouchEventsEnabled(true);
             if(!isPreview()) {
-            	// setup a repeating alarm for change of wallpaper
-                AlarmManager mgr = (AlarmManager)getApplicationContext().getSystemService(Context.ALARM_SERVICE);
-                // alarm does not have to be exact, e.g. nobody sees the wallpaper 
-                // when device is sleeping, so no point changing it
-                mgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
-                                  SystemClock.elapsedRealtime() + 1000,
-                                  AlarmManager.INTERVAL_HOUR,
-                                  getAlarmPendingIntent(getApplicationContext()));
+            	AlarmReceiver.setAlarm(getApplicationContext());
             }
         }
 
@@ -94,9 +102,7 @@ public class CloudWaveWallpaper extends WallpaperService {
         public void onDestroy() {
             super.onDestroy();
             if(!isPreview()) {
-            	// cancel the repeating change wallpaper alarm
-            	AlarmManager mgr = (AlarmManager)getApplicationContext().getSystemService(Context.ALARM_SERVICE);
-            	mgr.cancel(getAlarmPendingIntent(getApplicationContext()));
+            	AlarmReceiver.cancelAlarm(getApplicationContext());
             }
         }
 
@@ -119,7 +125,7 @@ public class CloudWaveWallpaper extends WallpaperService {
 
 //        @Override
 //        public void onTouchEvent(MotionEvent event) {
-//        	//TODO: implement the recognition of double tap
+//        	//TODO: implement the recognition of double tap and open track permalink
 //            if (event.getAction() == MotionEvent.ACTION_MOVE) {
 //                mTouchX = event.getX();
 //                mTouchY = event.getY();

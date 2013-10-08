@@ -2,6 +2,10 @@ package com.luboganev.cloudwave;
 
 import android.util.Log;
 
+/**
+ * Useful class which logs debug or error messages 
+ * under a specific TAG when in debug mode
+ */
 public class LogUtils {
 	public static final String TAG = "CloudWave";
 	

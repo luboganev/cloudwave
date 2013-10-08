@@ -39,21 +39,10 @@
                 android:resource="@xml/cloudwave" />
         </service>
         
-		<activity
-			android:name="com.luboganev.cloudwave.TestActivity"
-			android:label="TestActivity" >
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity>
-        
-        
         <service android:name="com.luboganev.cloudwave.service.ChangeWallpaperService" >
         </service>
 		
-		<receiver android:name="com.luboganev.cloudwave.receivers.AlarmReceiverer">
-		</receiver>
+		<receiver android:name="com.luboganev.cloudwave.receivers.AlarmReceiver"/>
 
         <receiver
             android:name="com.luboganev.cloudwave.receivers.ConnectivityChangeReceiver"

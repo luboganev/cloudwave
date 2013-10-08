@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -60,10 +59,13 @@ public class CommunicationUtils {
 	
 	/**
 	 * This method implements the functionality of downloading a soundwave file
-	 * for requests of type {@link RequestType#SOUNDWAVE SOUNDWAVE}
 	 * 
-	 * @param intent
-	 * 		The starting intent containing the necessary params
+	 * @param serverUrl
+	 * 		The url of the soundwave
+	 * @param localFile
+	 * 		The local file where the downloaded soundwave image should be saved
+	 * @return
+	 * 		if download was successful
 	 */
 	public static boolean executeSoundwaveDownload(String serverUrl, File localFile) {
 		InputStream input = null;
