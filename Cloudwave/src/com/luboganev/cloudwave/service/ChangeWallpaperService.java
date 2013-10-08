@@ -1,6 +1,7 @@
 package com.luboganev.cloudwave.service;
 
 import java.io.File;
+
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -25,6 +26,7 @@ public class ChangeWallpaperService extends WakefulIntentService {
 	@Override
 	protected void doWakefulWork(Intent intent) {
 		LogUtils.d(this, "Doing wakeful work");
+		
 		// load local storage
 		LocalStorageManager manager = new LocalStorageManager(getApplicationContext());
 		if(manager.hasSavedLocalStorage()) {

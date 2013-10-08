@@ -7,7 +7,7 @@
     <uses-sdk
         android:minSdkVersion="7"
         android:targetSdkVersion="18" />
-
+    
     <uses-feature android:name="android.software.live_wallpaper" />
 
     <!-- Needed by CommunicationUtils to communicate over HTTP with SoundCloud API -->

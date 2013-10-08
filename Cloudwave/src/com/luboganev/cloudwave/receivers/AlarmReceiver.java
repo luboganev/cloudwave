@@ -37,25 +37,24 @@ public class AlarmReceiver extends BroadcastReceiver {
 	}
 	
 	/**
-	 * Sets up a new repreating alarm for starting the change wallpaper service
+	 * Sets up a new one time alarm for starting the change wallpaper service
 	 * 
 	 * @param context
 	 * 		Used to get the alarm manager
 	 */
-	public static void setAlarm(Context context) {
-		LogUtils.d("AlarmReceiver", "Setting up an alarm");
+	public static void setOneTimeAlarm(Context context, long delay) {
+		LogUtils.d("AlarmReceiver", "Setting up one time alarm");
 		AlarmManager mgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         // alarm does not have to be exact, e.g. nobody sees the wallpaper 
         // when device is sleeping, so no point waking up
 		// does not also need to be that exact
-        mgr.setInexactRepeating(AlarmManager.RTC,
-                          System.currentTimeMillis(),
-                          60 * 60 * 1000, // 1 hour
-                          getAlarmIntent(context));
+        mgr.set(AlarmManager.RTC, 
+        		System.currentTimeMillis() + delay, 
+        		getAlarmIntent(context));
 	}
 	
 	/**
-	 * Cancels the repreating alarm for starting the change wallpaper service
+	 * Cancels the alarm for starting the change wallpaper service
 	 * 
 	 * @param context
 	 * 		Used to get the alarm manager
